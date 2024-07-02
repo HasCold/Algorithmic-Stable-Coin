@@ -10,8 +10,11 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "./H2USD-Stablecoin-Smart-Contract.sol";
 
+// Option 1 :- To repeg the value H2USD stable coin to 1$ we burnt or mint the token of our H2USD Stable Coin.
+// Option 2 :- To repeg the value H2USD stable coin to 1$ we burnt or mint our own utility token in this case.
+
 contract H2USDGovernance is Ownable, ReentrancyGuard, AccessControl {
-        using SafeERC20 for ERC20;
+        using SafeERC20 for IERC20;
         using SafeMath for uint256;
 
         constructor(H2USD _h2usd) Ownable(msg.sender) {
@@ -23,7 +26,7 @@ contract H2USDGovernance is Ownable, ReentrancyGuard, AccessControl {
 
         struct SuppChange {  // supply change
             string method;  // Method will be checked either it is mint or burned
-            uint256 amount;
+            uint256 amount;  // Burning Amount
             uint256 timeStamp;
             uint256 blockNum;  // store at one block number that the rebalancing of the token happen  
         }
@@ -85,10 +88,63 @@ contract H2USDGovernance is Ownable, ReentrancyGuard, AccessControl {
         }       
 
         // Collateral Rebalancing function to determine if the balance or reserve is higher or lower and updating those values that we can peg or validate the peg 
-        function collateralRebalancing() external returns (bool) {  // we are going to call this function in validatePer()
+        function collateralRebalancing() internal returns (bool) {  // we are going to call this function in validatePer()
             // This information here going to give the algorithm stablecoin 
             // .collToken has IERC20 interface function which you can call  // 0 means usdt  // How much stable collateral do we have 
             uint256 stableBalance = rsvList[0].collToken.balanceOf(reserveContract); 
+            uint256 unstableBalance = rsvList[1].collToken.balanceOf(reserveContract); // 1 -->> WETH 
         
+            if(stableBalance != stableCollatAmount){
+                stableCollatAmount = stableBalance;
+            }
+            if(unstableBalance != unstableCollatAmount){
+                unstableCollatAmount = unstableBalance;
+            }
+            return true;
+        }
+
+// --------------- Algorithmic Stable Coin Functionality ---------------------------
+        function validatePeg() external nonReentrant {
+            require(hasRole(GOVERN_ROLE, _msgSender()), "Not Allowed");
+            h2usdSupply = h2usd.totalSupply();
+            bool res = collateralRebalancing();
+
+            if(res == true){            // stable price + unstable price
+                uint256 rawCollPrice = (stableCollatAmount.mul(1e18)).add(unstableCollatAmount.mul(unstableCollatPrice));
+                uint256 collValue = rawCollPrice.mul(WEI_VALUE);  // Total Collateral Value
+                if(collValue < h2usdSupply){    
+                    // Suppose the price of WETH is going down so in this way we are going to burn the tokens 
+                    uint256 supplyChange = h2usdSupply.sub(collValue); // 1M tokens - Collateral Value
+                    h2usd.burn(supplyChange);
+
+                    _supplyChanges[supplyChangeCount].method = "Burn";
+                    _supplyChanges[supplyChangeCount].amount = supplyChange;
+                }
+
+                // Suppose the price of collateral or WETH is going up so in this way we are going to rebalancing or mint the h2usd stable coin 
+                if(collValue > h2usdSupply) {
+                    uint256 supplyChange = collValue.sub(h2usdSupply); 
+                    h2usd.mint(supplyChange);
+
+                    _supplyChanges[supplyChangeCount].method = "Mint";
+                    _supplyChanges[supplyChangeCount].amount = supplyChange;
+                }  
+
+                h2usdSupply = collValue;  // collateral value dictate how many stable coins we have
+                _supplyChanges[supplyChangeCount].timeStamp = block.timestamp;
+                _supplyChanges[supplyChangeCount].blockNum = block.number;
+                supplyChangeCount++;
+
+                emit RepegAction(block.timestamp, collValue);               
+            }
+        }
+
+        // h2usd tokens held in our govrnance smart contract 
+        function withdraw(uint256 _amount) external nonReentrant {
+            require(hasRole(GOVERN_ROLE, _msgSender()), "Not Allowed");
+            require(_amount > 0 , "Amount must be greater than zero");
+
+            IERC20(h2usd).safeTransferFrom(address(this), address(msg.sender), _amount);  // transfer amount from governance contract to my wallet
+            emit Withdraw(block.timestamp, _amount);
         }
 }
