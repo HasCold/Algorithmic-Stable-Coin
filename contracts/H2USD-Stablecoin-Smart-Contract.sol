@@ -18,8 +18,8 @@ contract H2USD is ERC20, ERC20Burnable, Ownable, AccessControl {
 
     constructor() ERC20("H2USD Stable", "H2USD") Ownable(msg.sender) {  //  ERC20("Name", "Symbol")
         // enabling the manager role in the deployer account ; when I deploy the contract it assign the MANAGER_ROLE and ADMIN_ROLE in the function
-        _grantRole("ADMIN_ROLE", _msgSender());
-        _grantRole("MANAGER_ROLE", _msgSender());        
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(MANAGER_ROLE, _msgSender());        
     }  
 
     // Track through mapping :- How many times have we mint the tokens or have we mint the stable coins
@@ -39,3 +39,7 @@ contract H2USD is ERC20, ERC20Burnable, Ownable, AccessControl {
         _mint(msg.sender, amount);  // _mint function can be found at this openzeppelin/contracts/token/ERC20/ERC20.sol
     }
 }
+
+// Mint the tokens to 1e6 (1 Million tokens) h2usd
+// Transfer the 500000 h2usd tokens to our governance smart contract so that it can burn easily
+// You can see all the transactions of H2USD on sepolia etherscan :- 0x9E66067C87Cba0FE643c85e5998EB59EDa661ef6 

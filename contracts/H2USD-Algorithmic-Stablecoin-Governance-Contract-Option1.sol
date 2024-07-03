@@ -65,6 +65,7 @@ contract H2USDGovernance is Ownable, ReentrancyGuard, AccessControl {
             reserveCount++;
         }
 
+// Data feed address has been stored in the governance smart contract
         function setDataFeedAddress(address contractAddress) external {
             require(hasRole(GOVERN_ROLE, _msgSender()), "Not Allowed");
             require(contractAddress != address(0), "Invalid Address");
@@ -109,9 +110,9 @@ contract H2USDGovernance is Ownable, ReentrancyGuard, AccessControl {
             h2usdSupply = h2usd.totalSupply();
             bool res = collateralRebalancing();
 
-            if(res == true){            // stable price + unstable price
-                uint256 rawCollPrice = (stableCollatAmount.mul(1e18)).add(unstableCollatAmount.mul(unstableCollatPrice));
-                uint256 collValue = rawCollPrice.mul(WEI_VALUE);  // Total Collateral Value
+            if(res = true){            // stable price + unstable price
+                uint256 rawCollValue = (stableCollatAmount.mul(1e18)).add(unstableCollatAmount.mul(unstableCollatPrice));
+                uint256 collValue = rawCollValue.div(WEI_VALUE);  // Total Collateral Value
                 if(collValue < h2usdSupply){    
                     // Suppose the price of WETH is going down so in this way we are going to burn the tokens 
                     uint256 supplyChange = h2usdSupply.sub(collValue); // 1M tokens - Collateral Value
