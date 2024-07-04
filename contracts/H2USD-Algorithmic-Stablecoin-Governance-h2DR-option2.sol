@@ -31,8 +31,8 @@ import "./H2USD-Stablecoin-Smart-Contract.sol";
 import "./H2DR(utility token).sol";
 
 
-contract H2USDGovernOpt2 {
-     using SafeERC20 for IERC20;
+contract H2USDGovernOpt2 is Ownable, ReentrancyGuard, AccessControl {
+        using SafeERC20 for IERC20;
         using SafeMath for uint256;
 
         constructor(H2USD _h2usd, H2DR _h2dr) Ownable(msg.sender) {
