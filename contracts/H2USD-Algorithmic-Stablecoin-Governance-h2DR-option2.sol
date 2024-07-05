@@ -3,7 +3,7 @@ pragma solidity ^0.8.18.0;
 
 // Option 2 :- We are now using our own utility unstable token (h2DR) for the 2nd collateral to maintain the stable coin price at 1$ 
 
-// n2DR token :-
+// h2DR token :-
 //  Market Cap    Supply                 =   Price   
 // 80,000,000 / 1 Billion(1,000,000,000) = 0.08 cents price of our utility token(h2DR). 
 // 10 million tokens are in reserve contract and are dropping down to price 0.08 as collateral B.  
@@ -17,7 +17,7 @@ pragma solidity ^0.8.18.0;
 // Stable Price :- 0.99 - 1.00 $ 
 
 // If the price of n2DR token drop to 0.06 cents
-// 0.06 * 1,000,000 = 600,000 collateral B
+// 0.06 * 10,000,000 = 600,000 collateral B
 
 // We have two options that we could burn the H2USD supply which is 1Million as option1 and the option2 is burn the n2DR token the supply is 1 Billion so it is feasible to burn the n2DR tokens becuase we have more supply rather than H2USD
 
@@ -60,6 +60,7 @@ contract H2USDGovernOpt2 is Ownable, ReentrancyGuard, AccessControl {
         H2DR private h2dr;  // Collateral B utility token
         address private reserveContract;  // used to store information or data internally
         uint256 public h2usdSupply;  // Updated the token supply when we repeg 
+        uint256 public h2drSupply;
         address public dataFeed;  // ETH/USD  or any address that you want to get price info
         uint256 public supplyChangeCount;  // everytime keep a count when we do the rebalancing  
         uint256 public stableCollatPrice = 1e18; 
@@ -91,6 +92,17 @@ contract H2USDGovernOpt2 is Ownable, ReentrancyGuard, AccessControl {
             reserveContract = reserve;
         }       
 
+        function setH2drTokenPrice(uint256 marketCap) external nonReentrant {
+            require(hasRole(GOVERN_ROLE, _msgSender()), "Not Allowed");
+            h2drSupply = h2dr.totalSupply();
+            
+            // Market Cap *  Total Supply
+            // 80,000,000   ×   1000000000 (1 Billion)   =   800,000,000,000,000 (8.e+16)
+            // 8.e+16   ÷   1e18    =   0.08 cents price of h2dr token
+
+            unstableCollatPrice = (marketCap.mul(h2drSupply)).div(WEI_VALUE);
+        }
+
         // Collateral Rebalancing function to determine if the balance or reserve is higher or lower and updating those values that we can peg or validate the peg 
         function collateralRebalancing() internal returns (bool) {  // we are going to call this function in validatePer()
             // This information here going to give the algorithm stablecoin 
@@ -117,9 +129,20 @@ contract H2USDGovernOpt2 is Ownable, ReentrancyGuard, AccessControl {
                 uint256 rawCollValue = (stableCollatAmount.mul(1e18)).add(unstableCollatAmount.mul(unstableCollatPrice));
                 uint256 collValue = rawCollValue.div(WEI_VALUE);  // Total Collateral Value
                 if(collValue < h2usdSupply){    
-                    // Suppose the price of WETH is going down so in this way we are going to burn the tokens 
-                    uint256 supplyChange = h2usdSupply.sub(collValue); // 1M tokens - Collateral Value
-                    h2usd.burn(supplyChange);
+                    // MarketCap         /           Total Supply 
+                    // 80,000,000       /       1,000,000,000   =   0.08 cents
+                    //  10,000,000 (10 M) tokens are reserved in the vault  *   0.08   =  800,000 collateral B 
+
+                // Suppose the price of our utility token is going down to 0.06 so in this way we are going to burn the tokens
+                    // 0.06  *   1,000,000,000      =       60,000,000 (60 M) Market Cap 
+                // That Means : - 
+                    // 600,000  collateral B 
+                    // 200,000 Loss of collateral 
+                    //                      1,000,000 - (600,000 + 200,000)
+                    uint256 supplyChange = h2usdSupply.sub(collValue); 
+                    uint256 burnAmount = (supplyChange.div(unstableCollatPrice)).mul(WEI_VALUE);
+                    //                      200,000     /       0.06     =  3,333,333,e+18
+                    h2dr.burn(burnAmount);
 
                     _supplyChanges[supplyChangeCount].method = "Burn";
                     _supplyChanges[supplyChangeCount].amount = supplyChange;
@@ -149,6 +172,14 @@ contract H2USDGovernOpt2 is Ownable, ReentrancyGuard, AccessControl {
             require(_amount > 0 , "Amount must be greater than zero");
 
             IERC20(h2usd).safeTransferFrom(address(this), address(msg.sender), _amount);  // transfer amount from governance contract to my wallet
+            emit Withdraw(block.timestamp, _amount);
+        }
+
+        function withdrawH2dr(uint256 _amount) external nonReentrant {
+            require(hasRole(GOVERN_ROLE, _msgSender()), "Not Allowed");
+            require(_amount > 0 , "Amount must be greater than zero");
+
+            IERC20(h2dr).safeTransferFrom(address(this), address(msg.sender), _amount);  // transfer amount from governance contract to my wallet
             emit Withdraw(block.timestamp, _amount);
         }
 }

@@ -1,18 +1,35 @@
 Deployed by this account address :-  0x59f4E786Edb7580C0E13527Dafca9Cdc22301927 (Account 1)
-
-USDT Contract Address :- 0x052AB9ECB2565Cd6fFac6Bf147d1d11F4E09334B
-
-WETH Contract Address :- 0xDf1f91f44Ede365ed2f2407b931488595cDd21fb
-
-H2USDReserves Contract Address :- 0x3007628dA48D228C23b67De2fFeF2A6b3D5e0e09
-
-H2USD Smart Contract :- 0x9E66067C87Cba0FE643c85e5998EB59EDa661ef6
-
-H2USD Governance Smart Contract :- 0xFC80921D8B8881141F97B331823503ce79160C73
+ 
+For Option 1 : WETH Contract Address :- 0xDf1f91f44Ede365ed2f2407b931488595cDd21fb
+For Option 1 : USDT Contract Address :- 0x052AB9ECB2565Cd6fFac6Bf147d1d11F4E09334B
+For Option 1 : H2USDReserves Contract Address :- 0x3007628dA48D228C23b67De2fFeF2A6b3D5e0e09
+For Option 1 : H2USD Stablecoin Contract Address :- 0x9E66067C87Cba0FE643c85e5998EB59EDa661ef6
+For Option 1 : H2USD Governance Smart Contract :- 0xFC80921D8B8881141F97B331823503ce79160C73
 
 
+
+For Option 2 : USDT Contract Address :-  0x85A2C93895Cc9c5e90332Bd5661343134BE45659  
+For Option 2 : H2USDReserves Contract Address :-  0xB76c8bF2b70EDf06D34A19C072758399Ce2274f7
+For Option 2 : H2USD Stablecoin Contract Address :-   0x18ed648a40d6eE99Ee374a3302F20aD2bd9D8548 
+For Option 2 : H2DR (Utility Token) :- 0xa7e5FA1978E54e2387D7d0FD653490CFFa424cd5
+For Option 2 : H2USD Governance Smart Contract :-  0x781df61BCb194628F6088bb442A00A4bf7186927
+
+
+--------------------------------------------------------------------------------------------------------------
 
 Deployed by this account address :-  0xa43041C8E15CE93A215522DC1F124964f8b75109 (Umer)
 
 PriceOracle Contract Address :- 0x368eF7964C1EF4fEC731b97a916f7eC727C5812d
 
+
+
+Supply :- 
+USDT = 200,000
+WETH = According to the market cap and price calculation
+H2DR = 1,000,000,000 (1 Billion)
+H2USD Stablecoin = 1,000,000 (1 Million)
+
+
+. H2USDReserves Contract Vault :  Holds USDT, WETH for option 1 and Holds (200,000) USDT, (10,000,000 from 1 Billion supply) H2DR for option 2
+. H2DR Contract  gives  Grant role to the H2USD-Governance-option2  that will allow the governance contract to mint or burn the tokens(Utility tokens = H2DR).
+. Send the 500 million tokens of H2DR to this contract H2USD-Governance-option2 Contract via Metamask wallet 
