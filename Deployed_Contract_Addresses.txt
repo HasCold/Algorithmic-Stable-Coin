@@ -19,7 +19,7 @@ For Option 2 : H2USD Governance Smart Contract :-  0x781df61BCb194628F6088bb442A
 
 Deployed by this account address :-  0xa43041C8E15CE93A215522DC1F124964f8b75109 (Umer)
 
-PriceOracle Contract Address :- 0x368eF7964C1EF4fEC731b97a916f7eC727C5812d
+For Option 1 : PriceOracle Contract Address :- 0x368eF7964C1EF4fEC731b97a916f7eC727C5812d
 
 
 
