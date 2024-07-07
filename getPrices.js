@@ -8,7 +8,7 @@ const reserveContract = "0x3007628dA48D228C23b67De2fFeF2A6b3D5e0e09";
 const h2usdContract = "0x9E66067C87Cba0FE643c85e5998EB59EDa661ef6"; 
 
 const ethRPC = "https://rpc.ankr.com/eth";
-const sepoliaRPC = "https://ethereum-sepolia.blockpi.network/v1/rpc";
+const sepoliaRPC = "https://eth-sepolia.public.blastapi.io";
 
 const ethProvider = new ethers.JsonRpcProvider(ethRPC);
 const sepoliaProvider = new ethers.JsonRpcProvider(sepoliaRPC);
@@ -24,9 +24,35 @@ const h2usd = new ethers.Contract(h2usdContract, h2usdABI, sepoliaWallet);
 
 
 const getEthPrice = async () => {
-    await ethOracle.latestRoundData().then(data => {
-        console.log(data);
+    let ethPrice = await ethOracle.latestRoundData().then(data => {
+        let ethPrice = Number(data.answer).toString();
+        let formatEthPrice = ethers.formatUnits(ethPrice, 8);  // answer is in the tuple data-type of latestRoundData() 
+        // parseUnit -> Convert human readable value into bigint value
+        // formatUnit -> Convert human bigint value into human readable value
+        return formatEthPrice;
+
     }).catch(err => console.error(err.message));
+
+    return ethPrice;
 }
 
-getEthPrice();
+const getH2USDPrice = async () => {
+    try {
+        let latestEthPrice = await getEthPrice();
+        let usdtcolRaw = await reserves._rsvVault(0);  // usdt collateral vault
+        let usdtCollateral = ethers.formatUnits((usdtcolRaw.amount).toString(), 18);
+        
+        let ethcolRaw = await reserves._rsvVault(1);  // eth collateral vault
+        let ethCollateral = ethers.formatUnits((ethcolRaw.amount).toString(), 18);
+
+        let h2usdSupplyRaw = await h2usd.totalSupply();
+        let h2usdSupply = ethers.formatUnits(h2usdSupplyRaw.toString(), 18); 
+        let h2usdPrice = ((usdtCollateral * 1) + (ethCollateral * latestEthPrice)) / h2usdSupply;  // Price of h2usd stable coin
+        console.log(h2usdPrice);
+
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+module.exports = {getEthPrice, getH2USDPrice}
