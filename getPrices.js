@@ -1,7 +1,7 @@
 const {ethers} = require("ethers");
-const oracleABI = require("./oracle.ABI.json");
-const reserveABI = require("./h2usdReserves.ABI.json");
-const h2usdABI = require("./h2usd.ABI.json");
+const oracleABI = require("./ABI/oracle.ABI.json");
+const reserveABI = require("./ABI/h2usdReserves.ABI.json");
+const h2usdABI = require("./ABI/h2usd.ABI.json");
 
 const oracleEthMainnet = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419";  // Chainlink Eth Fairly Actual Price 
 const reserveContract = "0x3007628dA48D228C23b67De2fFeF2A6b3D5e0e09";
@@ -29,6 +29,7 @@ const getEthPrice = async () => {
         let formatEthPrice = ethers.formatUnits(ethPrice, 8);  // answer is in the tuple data-type of latestRoundData() 
         // parseUnit -> Convert human readable value into bigint value
         // formatUnit -> Convert human bigint value into human readable value
+        console.log(formatEthPrice);
         return formatEthPrice;
 
     }).catch(err => console.error(err.message));
@@ -49,6 +50,7 @@ const getH2USDPrice = async () => {
         let h2usdSupply = ethers.formatUnits(h2usdSupplyRaw.toString(), 18); 
         let h2usdPrice = ((usdtCollateral * 1) + (ethCollateral * latestEthPrice)) / h2usdSupply;  // Price of h2usd stable coin
         console.log(h2usdPrice);
+        return h2usdPrice;
 
     } catch (error) {
         console.error(error.message);

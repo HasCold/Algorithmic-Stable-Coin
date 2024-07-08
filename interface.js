@@ -1,5 +1,5 @@
 const {getEthPrice, getH2USDPrice} = require("./getPrices");
-const {readDB, writeDB} = require("./database");
+const {readDB, writeDB} = require("./db/database");
 
 const getDBData = async (token) => {
     try {
@@ -46,4 +46,30 @@ const storeEthPrice = async () => {
     }
 }
 
+
 // Store H2USD Price
+const storeH2USDPrice = async () => {
+    try {
+        const token = "h2usd";
+        let price = await getH2USDPrice();
+        const fetchTime = new Date();
+        const time = `${fetchTime.getHours()} : ${fetchTime.getMinutes()} : ${fetchTime.getSeconds()}`
+
+        const {chartPrice, chartTime, chartEntry} = await getDBData(token); 
+        let rawLastEntry = chartEntry;
+
+        if(rawLastEntry.length == 0){
+            let entry = 0;
+            await writeDB(price, time, entry, token);
+
+        }else if(rawLastEntry.length > 0){
+            let lastEntry = rawLastEntry[rawLastEntry.length - 1];
+            await writeDB(price, time, lastEntry, token);
+        }
+
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+module.exports = {storeEthPrice, storeH2USDPrice, getDBData}
