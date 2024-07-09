@@ -16,17 +16,16 @@ const h2usd = new ethers.Contract(h2usdContract, h2usdABI, wallet);
 export const getReserves = async () => {
     try {
         const rsvCount = Number((await reserves.currentReserveId()).toString());
-        const h2usdformat = (await h2usd.totalSupply()).toString(); 
+        const h2usdSupply = (await h2usd.totalSupply()).toString(); 
 
         let rsvAmount = [];
         for(let i = 0; i < rsvCount; i++){
             const vaultInfo = await reserves._rsvVault(i);
             const getBalance = vaultInfo.amount.toString();
             let formatBalance = ethers.formatEther(getBalance);
-            console.log(formatBalance);
             rsvAmount.push(formatBalance);
         }
-        return {rsvAmount, h2usdformat}
+        return {rsvAmount, h2usdSupply}
 
     } catch (error) {
         console.error(error.message);

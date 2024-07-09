@@ -17,25 +17,23 @@
 
 const express = require('express');
 const cors= require("cors");
-const { getDbData, storeEthPrice, storeH2USDPrice } = require('./interface');
-
-const corsOptions ={
-    origin:'*', 
-    optionSuccessStatus:200,
-}
+const { getDBData, storeEthPrice, storeH2USDPrice } = require('./interface');
 
 const app = express();
 
 app.use(express.json());  // accept json data from frontend
 app.use(express.urlencoded({extended: true}));  
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+}));
 
 app.post("/getChartInfo", (req, res) => {
     const {token} = req.body;
     if(!token) throw new Error("Not Authenticated !");
 
     return new Promise((resolve, reject) => {
-        getDbData(token).then(response => {
+        getDBData(token).then(response => {
             res.statusCode = 200;
             res.setHeader("Content-Type", "application/json");
             res.setHeader("Cache-Control", "max-age=180000");
